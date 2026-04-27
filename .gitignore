@@ -1,0 +1,8 @@
+/docs/api/
+/lib/
+/bin/*
+/.shards/
+*.dwarf
+*.o
+/crystal-jose
+.DS_Store

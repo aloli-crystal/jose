@@ -1,0 +1,30 @@
+= Changelog
+:toc: left
+:toc-title: Versions
+:toclevels: 2
+
+== v0.1.0 — 2026-04-27
+
+Initial release. Scope intentionally limited to what
+`crystal-clevis-geli` (Tang client) needs.
+
+* **JWK** (RFC 7517, RFC 7518 §6.2, RFC 7638): EC keys on
+  curves P-256, P-384, P-521. JSON parsing and serialization,
+  public-key extraction, thumbprints validated against
+  https://github.com/latchset/jose[latchset/jose].
+* **JWS** (RFC 7515): Compact Serialization. Algorithms
+  ES256, ES384, ES512 (sign and verify). Correct DER ↔ R||S
+  conversion (validated with 50 random round-trips per curve).
+* **JWE** (RFC 7516, RFC 7518 §4.6 + §5.3): Compact
+  Serialization. ECDH-ES key agreement + A256GCM content
+  encryption. Concat KDF as specialized in RFC 7518 §4.6.2.
+* **Interoperability** with `latchset/jose` validated end-to-end:
+  thumbprints, JWS sign/verify cross, JWE encrypt/decrypt cross,
+  ECDH shared-secret derivation.
+
+Out of scope for v0.1 (and not currently planned):
+
+* RSA-based algorithms.
+* EdDSA (Ed25519).
+* Full JWT validation (`exp`, `nbf`, `aud`, …).
+* JWE General/Flattened serializations (only Compact is supported).

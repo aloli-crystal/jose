@@ -1,0 +1,33 @@
+= Journal des modifications
+:toc: left
+:toc-title: Versions
+:toclevels: 2
+
+== v0.1.0 — 2026-04-27
+
+Première version publiée. Périmètre volontairement limité à ce
+dont `crystal-clevis-geli` (client Tang) a besoin.
+
+* **JWK** (RFC 7517, RFC 7518 §6.2, RFC 7638) : clés EC sur les
+  courbes P-256, P-384, P-521. Parsing/sérialisation JSON,
+  extraction de la clé publique, empreintes validées contre
+  https://github.com/latchset/jose[latchset/jose].
+* **JWS** (RFC 7515) : sérialisation compacte. Algorithmes
+  ES256, ES384, ES512 (signature et vérification). Conversion
+  DER ↔ R||S correcte (validée par 50 round-trips aléatoires par
+  courbe).
+* **JWE** (RFC 7516, RFC 7518 §4.6 + §5.3) : sérialisation
+  compacte. Accord de clés ECDH-ES + chiffrement de contenu
+  A256GCM. Concat KDF tel que spécialisé en RFC 7518 §4.6.2.
+* **Interopérabilité** avec `latchset/jose` validée de bout en
+  bout : empreintes, signature/vérification JWS croisées,
+  chiffrement/déchiffrement JWE croisés, dérivation du secret
+  partagé ECDH.
+
+Hors périmètre v0.1 (non planifié à ce stade) :
+
+* Algorithmes RSA.
+* EdDSA (Ed25519).
+* Validation JWT complète (`exp`, `nbf`, `aud`, …).
+* Sérialisations General/Flattened pour JWE (seul Compact est
+  supporté).

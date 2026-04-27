@@ -1,0 +1,97 @@
+= crystal-jose
+:toc: left
+:toclevels: 2
+:source-highlighter: rouge
+
+image:https://github.com/aloli-crystal/crystal-jose/actions/workflows/ci.yml/badge.svg[CI,link=https://github.com/aloli-crystal/crystal-jose/actions/workflows/ci.yml]
+
+JOSE (RFC 7515-7519) implementation in pure Crystal: JSON Web Signature
+(JWS), JSON Web Encryption (JWE), JSON Web Key (JWK).
+
+French version: link:README.fr.adoc[README.fr.adoc].
+
+== Why
+
+`crystal-jose` exists primarily to support
+https://github.com/aloli-crystal/crystal-clevis-geli[crystal-clevis-geli],
+the Tang client for FreeBSD GELI volumes. Initial scope is
+intentionally minimal — only what the Tang protocol needs:
+
+* **JWK**: thumbprints (RFC 7638), serialization, ECDH key types
+  (P-256, P-384, P-521).
+* **JWS**: ES256, ES512 (signature & verification).
+* **JWE**: ECDH-ES key agreement, A256GCM content encryption.
+
+Out of v0.1 scope (may be added later if needed):
+
+* RSA-based algorithms (RSA-OAEP, RS256, …).
+* EdDSA (Ed25519).
+* Full JWT validation (`exp`, `nbf`, `aud`, …).
+* JWKS endpoints (key discovery over HTTP).
+
+== Installation
+
+Add to your `shard.yml`:
+
+[source,yaml]
+----
+dependencies:
+  crystal-jose:
+    github: aloli-crystal/crystal-jose
+    version: ~> 0.1
+----
+
+Then `shards install`.
+
+== Usage
+
+[source,crystal]
+----
+require "crystal-jose"
+
+# === JWK ============================================================
+key = CrystalJose::JWK::ECKey.generate(CrystalJose::JWK::Curve::P256)
+key.thumbprint_base64url   # => "cn-I_WNMClehiVp51i_0VpOENW1upEerA8sEam5hn-s"
+key.public_key.to_json     # => {"kty":"EC","crv":"P-256","x":"...","y":"..."}
+
+# Parse a JWK (e.g. from a Tang advertisement).
+peer = CrystalJose::JWK::ECKey.from_json(jwk_string)
+
+# === JWS ============================================================
+jws = CrystalJose::JWS.sign("payload", CrystalJose::JWS::Algorithm::ES256, key)
+plaintext = CrystalJose::JWS.verify(jws, key.public_key)
+
+# === JWE ============================================================
+jwe = CrystalJose::JWE.encrypt("secret", peer.public_key)
+plaintext = CrystalJose::JWE.decrypt(jwe, peer)
+----
+
+== Development
+
+[source,shell]
+----
+shards install
+crystal spec
+crystal tool format --check
+bin/ameba
+----
+
+== Contributing
+
+. Fork the repository.
+. Create a feature branch from `production`.
+. Run `crystal tool format src/ spec/` before each commit.
+. Open a pull request against `production`.
+
+== License
+
+MIT — see link:LICENSE[LICENSE].
+
+== References
+
+* https://datatracker.ietf.org/doc/html/rfc7515[RFC 7515 — JSON Web Signature]
+* https://datatracker.ietf.org/doc/html/rfc7516[RFC 7516 — JSON Web Encryption]
+* https://datatracker.ietf.org/doc/html/rfc7517[RFC 7517 — JSON Web Key]
+* https://datatracker.ietf.org/doc/html/rfc7518[RFC 7518 — JSON Web Algorithms]
+* https://datatracker.ietf.org/doc/html/rfc7638[RFC 7638 — JWK Thumbprints]
+* https://github.com/latchset/tang[Tang server (consumer of this lib via crystal-clevis-geli)]
