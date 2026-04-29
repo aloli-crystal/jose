@@ -3,7 +3,7 @@ require "./openssl_ext"
 require "./utils"
 require "./jwk"
 
-module CrystalJose
+module Jose
   module JWS
     class Error < Exception
     end

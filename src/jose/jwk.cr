@@ -4,7 +4,7 @@ require "openssl/digest"
 require "./openssl_ext"
 require "./utils"
 
-module CrystalJose
+module Jose
   module JWK
     class Error < Exception
     end

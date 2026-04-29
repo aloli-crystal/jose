@@ -1,5 +1,5 @@
 name: jose
-version: 0.1.1
+version: 0.1.2
 description: |
   JOSE (RFC 7515-7519) implementation in pure Crystal: JSON Web
   Signature, JSON Web Encryption, JSON Web Key.

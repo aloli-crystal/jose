@@ -3,17 +3,34 @@
 :toc-title: Versions
 :toclevels: 2
 
+== v0.1.2 — 2026-04-29
+
+=== Changed
+
+* **Internal module renamed** `CrystalJose` → `Jose` (Aloli convention:
+  drop the `Crystal` prefix and use strict CamelCase — no acronym
+  preservation, even for protocol families like JOSE).
+* Source folder `src/crystal_jose/` → `src/jose/`. Entry-point
+  consolidated into `src/jose.cr`. Internal `require` paths updated.
+* Behaviour and public API unchanged.
+
+=== Note for consumers
+
+External code that referenced `CrystalJose::*` (`clevis-geli`,
+`clevis-zfs`) needs to be updated to `Jose::*` and re-pinned to
+`~> 0.1.2`.
+
 == v0.1.1 — 2026-04-29
 
 === Changed
 
-* **GitHub repository renamed** from `aloli-crystal/crystal-jose` to
+* **GitHub repository renamed** from `aloli-crystal/jose` to
   `aloli-crystal/jose` (Aloli naming convention: original creations
   drop the `crystal-` prefix). Old links redirect automatically.
-* `name:` field in `shard.yml` updated from `crystal-jose` to `jose`.
-* Entry-point file renamed `src/crystal-jose.cr` → `src/jose.cr`
+* `name:` field in `shard.yml` updated from `jose` to `jose`.
+* Entry-point file renamed `src/jose.cr` → `src/jose.cr`
   (still a thin shim over `src/crystal_jose.cr`, the actual code).
-  Consumer-side, `require "crystal-jose"` becomes `require "jose"`.
+  Consumer-side, `require "jose"` becomes `require "jose"`.
 * The internal module `JOSE` and folder `src/crystal_jose/` are
   unchanged — they will be cleaned up à tête reposée in a later
   version.

@@ -1,6 +1,6 @@
 require "base64"
 
-module CrystalJose
+module Jose
   module Utils
     extend self
 

@@ -3,17 +3,35 @@
 :toc-title: Versions
 :toclevels: 2
 
+== v0.1.2 — 2026-04-29
+
+=== Modifié
+
+* **Module interne renommé** `CrystalJose` → `Jose` (convention Aloli :
+  retrait du préfixe `Crystal` et CamelCase strict — pas de
+  préservation d'acronyme, même pour les noms de familles de protocoles
+  comme JOSE).
+* Dossier source `src/crystal_jose/` → `src/jose/`. Fichier d'entrée
+  consolidé dans `src/jose.cr`. Chemins `require` internes adaptés.
+* Comportement et API publique inchangés.
+
+=== Note pour les consommateurs
+
+Le code externe qui référençait `CrystalJose::*` (`clevis-geli`,
+`clevis-zfs`) doit être mis à jour vers `Jose::*` et re-épinglé sur
+`~> 0.1.2`.
+
 == v0.1.1 — 2026-04-29
 
 === Modifié
 
-* **Repo GitHub renommé** `aloli-crystal/crystal-jose` → `aloli-crystal/jose`
+* **Repo GitHub renommé** `aloli-crystal/jose` → `aloli-crystal/jose`
   (convention de nommage Aloli : les créations originales abandonnent
   le préfixe `crystal-`). Les anciens liens redirigent automatiquement.
-* Champ `name:` du `shard.yml` mis à jour de `crystal-jose` à `jose`.
-* Fichier d'entrée renommé `src/crystal-jose.cr` → `src/jose.cr`
+* Champ `name:` du `shard.yml` mis à jour de `jose` à `jose`.
+* Fichier d'entrée renommé `src/jose.cr` → `src/jose.cr`
   (toujours un shim léger vers `src/crystal_jose.cr`, qui contient le
-  code). Côté consommateur, `require "crystal-jose"` devient
+  code). Côté consommateur, `require "jose"` devient
   `require "jose"`.
 * Le module interne `JOSE` et le dossier `src/crystal_jose/` restent
   inchangés — leur nettoyage est reporté « à tête reposée ».
