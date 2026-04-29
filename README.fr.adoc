@@ -1,9 +1,9 @@
-= crystal-jose
+= jose
 :toc: left
 :toclevels: 2
 :source-highlighter: rouge
 
-image:https://github.com/aloli-crystal/crystal-jose/actions/workflows/ci.yml/badge.svg[CI,link=https://github.com/aloli-crystal/crystal-jose/actions/workflows/ci.yml]
+image:https://github.com/aloli-crystal/jose/actions/workflows/ci.yml/badge.svg[CI,link=https://github.com/aloli-crystal/jose/actions/workflows/ci.yml]
 
 Implémentation de JOSE (RFC 7515-7519) en Crystal pur : JSON Web
 Signature (JWS), JSON Web Encryption (JWE), JSON Web Key (JWK).
@@ -12,7 +12,7 @@ Version anglaise : link:README.adoc[README.adoc].
 
 == Pourquoi
 
-`crystal-jose` existe d'abord pour servir
+`jose` existe d'abord pour servir
 https://github.com/aloli-crystal/crystal-clevis-geli[crystal-clevis-geli],
 le client Tang pour les volumes GELI sous FreeBSD. Le périmètre
 initial est volontairement minimal — uniquement ce dont le protocole
@@ -37,8 +37,8 @@ Ajouter à votre `shard.yml` :
 [source,yaml]
 ----
 dependencies:
-  crystal-jose:
-    github: aloli-crystal/crystal-jose
+  jose:
+    github: aloli-crystal/jose
     version: ~> 0.1
 ----
 
@@ -48,7 +48,7 @@ Puis `shards install`.
 
 [source,crystal]
 ----
-require "crystal-jose"
+require "jose"
 
 # === JWK ============================================================
 key = CrystalJose::JWK::ECKey.generate(CrystalJose::JWK::Curve::P256)

@@ -3,6 +3,21 @@
 :toc-title: Versions
 :toclevels: 2
 
+== v0.1.1 — 2026-04-29
+
+=== Changed
+
+* **GitHub repository renamed** from `aloli-crystal/crystal-jose` to
+  `aloli-crystal/jose` (Aloli naming convention: original creations
+  drop the `crystal-` prefix). Old links redirect automatically.
+* `name:` field in `shard.yml` updated from `crystal-jose` to `jose`.
+* Entry-point file renamed `src/crystal-jose.cr` → `src/jose.cr`
+  (still a thin shim over `src/crystal_jose.cr`, the actual code).
+  Consumer-side, `require "crystal-jose"` becomes `require "jose"`.
+* The internal module `JOSE` and folder `src/crystal_jose/` are
+  unchanged — they will be cleaned up à tête reposée in a later
+  version.
+
 == v0.1.0 — 2026-04-27
 
 Initial release. Scope intentionally limited to what
