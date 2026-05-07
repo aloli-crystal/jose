@@ -2,7 +2,7 @@ require "./spec_helper"
 
 describe Jose do
   it "exposes a version" do
-    Jose::VERSION.should eq("0.1.0")
+    Jose::VERSION.should eq("0.1.3")
   end
 end
 
