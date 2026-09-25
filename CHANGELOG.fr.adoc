@@ -20,7 +20,7 @@
   un type de clé. Signer en `RS256` avec une `ECKey`, ou en `ES256` avec une
   `RSAKey`, lève désormais une erreur explicite au lieu d'échouer
   obscurément.
-* `JWS.verify_signature`, pour contrôler une signature nue sur des données
+* `JWS.sign_data` et `JWS.verify_signature`, pour produire et contrôler une signature nue sur des données
   quelconques, hors de toute enveloppe JWS — ce dont WebAuthn a besoin, où
   l'authentificateur signe ses données d'authentificateur concaténées à une
   empreinte de données client. Les signatures ECDSA sont attendues en ASN.1

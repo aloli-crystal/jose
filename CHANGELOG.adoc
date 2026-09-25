@@ -18,7 +18,7 @@
 * `Jose::JWS::Family` and `Algorithm#family`, so an algorithm and a key type
   can be checked against each other. Signing with `RS256` and an `ECKey`, or
   `ES256` and an `RSAKey`, now raises instead of failing obscurely.
-* `JWS.verify_signature`, to check a bare signature over arbitrary data
+* `JWS.sign_data` and `JWS.verify_signature`, to produce and check a bare signature over arbitrary data
   outside any JWS envelope — what WebAuthn needs, where an authenticator
   signs its authenticator data concatenated with a client-data hash. ECDSA
   signatures are taken in ASN.1 DER, OpenSSL's native form, which is also

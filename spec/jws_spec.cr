@@ -296,3 +296,37 @@ describe "Jose::JWS.verify_signature" do
     Jose::JWS.verify_signature("x".to_slice, Bytes[1, 2, 3], Jose::JWS::Algorithm::ES256, key).should be_false
   end
 end
+
+describe "Jose::JWS.sign_data" do
+  it "round-trips a bare RSA signature with verify_signature" do
+    key = Jose::JWK::RSAKey.generate(2048)
+    data = "authenticator data || client data hash".to_slice
+    signature = Jose::JWS.sign_data(data, Jose::JWS::Algorithm::RS256, key)
+
+    Jose::JWS.verify_signature(data, signature, Jose::JWS::Algorithm::RS256, key.public_key).should be_true
+  end
+
+  it "round-trips a bare ECDSA signature with verify_signature" do
+    key = Jose::JWK::ECKey.generate(Jose::JWK::Curve::P256)
+    data = "authenticator data || client data hash".to_slice
+    signature = Jose::JWS.sign_data(data, Jose::JWS::Algorithm::ES256, key)
+
+    # ASN.1 DER: SEQUENCE { INTEGER r, INTEGER s }
+    signature[0].should eq(0x30)
+    Jose::JWS.verify_signature(data, signature, Jose::JWS::Algorithm::ES256, key.public_key).should be_true
+  end
+
+  it "does not verify against different data" do
+    key = Jose::JWK::ECKey.generate(Jose::JWK::Curve::P256)
+    signature = Jose::JWS.sign_data("one".to_slice, Jose::JWS::Algorithm::ES256, key)
+
+    Jose::JWS.verify_signature("two".to_slice, signature, Jose::JWS::Algorithm::ES256, key.public_key).should be_false
+  end
+
+  it "refuses to sign with a public key" do
+    key = Jose::JWK::ECKey.generate(Jose::JWK::Curve::P256).public_key
+    expect_raises(Jose::JWS::Error, /private key/) do
+      Jose::JWS.sign_data("x".to_slice, Jose::JWS::Algorithm::ES256, key)
+    end
+  end
+end

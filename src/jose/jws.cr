@@ -167,6 +167,24 @@ module Jose
       Algorithm.from_name(alg_name)
     end
 
+    # Sign arbitrary data, outside any JWS envelope.
+    #
+    # The counterpart of `.verify_signature`, and subject to the same
+    # convention: the ECDSA signature comes back in OpenSSL's native ASN.1
+    # DER, not the fixed-width `r || s` pair JWS mandates.
+    def self.sign_data(data : Bytes, algorithm : Algorithm, key : JWK::ECKey | JWK::RSAKey) : Bytes
+      case key
+      in JWK::ECKey
+        raise Error.new("alg #{algorithm.name} needs an RSA key, got an EC key") if algorithm.family != Family::EC
+        raise Error.new("alg #{algorithm.name} requires curve #{algorithm.curve.jwk_name}, got #{key.curve.jwk_name}") if key.curve != algorithm.curve
+      in JWK::RSAKey
+        raise Error.new("alg #{algorithm.name} needs an EC key, got an RSA key") if algorithm.family != Family::RSA
+      end
+      raise Error.new("signing requires a private key (d)") unless key.private?
+
+      sign_raw(data, algorithm, key)
+    end
+
     # Verify a bare signature over arbitrary data, outside any JWS envelope.
     #
     # JWS is not the only thing that signs with these algorithms. WebAuthn, in
