@@ -167,6 +167,30 @@ module Jose
       Algorithm.from_name(alg_name)
     end
 
+    # Verify a bare signature over arbitrary data, outside any JWS envelope.
+    #
+    # JWS is not the only thing that signs with these algorithms. WebAuthn, in
+    # particular, has an authenticator sign the concatenation of its
+    # authenticator data and a client-data hash, with no JOSE envelope
+    # anywhere in sight.
+    #
+    # IMPORTANT: the signature must be in OpenSSL's native form, which for
+    # ECDSA is **ASN.1 DER** — not the fixed-width `r || s` concatenation that
+    # JWS itself mandates. That happens to be what WebAuthn authenticators
+    # emit. RSA signatures have a single form and need no care.
+    def self.verify_signature(data : Bytes, signature : Bytes, algorithm : Algorithm,
+                              key : JWK::ECKey | JWK::RSAKey) : Bool
+      case key
+      in JWK::ECKey
+        return false if algorithm.family != Family::EC
+        return false if key.curve != algorithm.curve
+      in JWK::RSAKey
+        return false if algorithm.family != Family::RSA
+      end
+
+      verify_raw(data, signature, algorithm, key)
+    end
+
     # Decode without verification — returns header, payload, raw JWS signature.
     def self.decode(jws : String) : NamedTuple(header: Hash(String, JSON::Any), payload: Bytes, signature: Bytes)
       header_b64, payload_b64, signature_b64 = split_compact(jws)

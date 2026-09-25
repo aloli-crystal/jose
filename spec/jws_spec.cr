@@ -255,3 +255,44 @@ describe Jose::JWS do
     end
   end
 end
+
+describe "Jose::JWS.verify_signature" do
+  it "verifies a bare RSA signature over arbitrary data" do
+    key = Jose::JWK::RSAKey.generate(2048)
+    data = "authenticator data || client data hash".to_slice
+    jws = Jose::JWS.sign(data, Jose::JWS::Algorithm::RS256, key)
+    signature = Jose::Utils.base64url_decode(jws.split('.')[2])
+    signing_input = jws.split('.')[0, 2].join('.').to_slice
+
+    Jose::JWS.verify_signature(signing_input, signature, Jose::JWS::Algorithm::RS256, key.public_key).should be_true
+  end
+
+  it "verifies a bare ECDSA signature given in DER form" do
+    key = Jose::JWK::ECKey.generate(Jose::JWK::Curve::P256)
+    jws = Jose::JWS.sign("payload", Jose::JWS::Algorithm::ES256, key)
+    signing_input = jws.split('.')[0, 2].join('.').to_slice
+
+    # JWS carries r || s; OpenSSL — and WebAuthn — want DER.
+    raw = Jose::Utils.base64url_decode(jws.split('.')[2])
+    der = Jose::DER.sequence(
+      Jose::DER.concat(Jose::DER.integer(raw[0, 32]), Jose::DER.integer(raw[32, 32]))
+    )
+
+    Jose::JWS.verify_signature(signing_input, der, Jose::JWS::Algorithm::ES256, key.public_key).should be_true
+  end
+
+  it "returns false on a mismatched signature" do
+    key = Jose::JWK::RSAKey.generate(2048)
+    other = Jose::JWK::RSAKey.generate(2048)
+    jws = Jose::JWS.sign("payload", Jose::JWS::Algorithm::RS256, key)
+    signature = Jose::Utils.base64url_decode(jws.split('.')[2])
+    signing_input = jws.split('.')[0, 2].join('.').to_slice
+
+    Jose::JWS.verify_signature(signing_input, signature, Jose::JWS::Algorithm::RS256, other.public_key).should be_false
+  end
+
+  it "returns false when the algorithm family does not match the key" do
+    key = Jose::JWK::RSAKey.generate(2048)
+    Jose::JWS.verify_signature("x".to_slice, Bytes[1, 2, 3], Jose::JWS::Algorithm::ES256, key).should be_false
+  end
+end
