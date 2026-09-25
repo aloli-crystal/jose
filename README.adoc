@@ -6,7 +6,8 @@
 image:https://github.com/aloli-crystal/jose/actions/workflows/ci.yml/badge.svg[CI,link=https://github.com/aloli-crystal/jose/actions/workflows/ci.yml]
 
 JOSE (RFC 7515-7519) implementation in pure Crystal: JSON Web Signature
-(JWS), JSON Web Encryption (JWE), JSON Web Key (JWK).
+(JWS), JSON Web Encryption (JWE), JSON Web Key (JWK). Elliptic curve and
+RSA.
 
 French version: link:README.fr.adoc[README.fr.adoc].
 
@@ -19,12 +20,21 @@ intentionally minimal — only what the Tang protocol needs:
 
 * **JWK**: thumbprints (RFC 7638), serialization, ECDH key types
   (P-256, P-384, P-521).
-* **JWS**: ES256, ES512 (signature & verification).
+* **JWS**: ES256, ES384, ES512 (signature & verification).
 * **JWE**: ECDH-ES key agreement, A256GCM content encryption.
 
-Out of v0.1 scope (may be added later if needed):
+Since v0.2, RSA is supported as well, for a second reason: OpenID Connect
+and WebAuthn both sign with RS256 by default, so an EC-only library cannot
+verify a token from a typical identity provider, nor an assertion from a
+Windows Hello authenticator.
 
-* RSA-based algorithms (RSA-OAEP, RS256, …).
+* **JWK**: `RSAKey` — generation, JWK parsing and serialization,
+  thumbprints, PKCS#1 / PKCS#8 / SubjectPublicKeyInfo DER.
+* **JWS**: RS256, RS384, RS512 (signature & verification).
+
+Still out of scope (may be added later if needed):
+
+* RSA-OAEP and RSA-PSS (`PS256`, …).
 * EdDSA (Ed25519).
 * Full JWT validation (`exp`, `nbf`, `aud`, …).
 * JWKS endpoints (key discovery over HTTP).
@@ -38,7 +48,7 @@ Add to your `shard.yml`:
 dependencies:
   jose:
     github: aloli-crystal/jose
-    version: ~> 0.1
+    version: ~> 0.2
 ----
 
 Then `shards install`.
@@ -49,22 +59,44 @@ Then `shards install`.
 ----
 require "jose"
 
-# === JWK ============================================================
-key = CrystalJose::JWK::ECKey.generate(CrystalJose::JWK::Curve::P256)
+# === JWK, elliptic curve ============================================
+key = Jose::JWK::ECKey.generate(Jose::JWK::Curve::P256)
 key.thumbprint_base64url   # => "cn-I_WNMClehiVp51i_0VpOENW1upEerA8sEam5hn-s"
 key.public_key.to_json     # => {"kty":"EC","crv":"P-256","x":"...","y":"..."}
 
 # Parse a JWK (e.g. from a Tang advertisement).
-peer = CrystalJose::JWK::ECKey.from_json(jwk_string)
+peer = Jose::JWK::ECKey.from_json(jwk_string)
 
-# === JWS ============================================================
-jws = CrystalJose::JWS.sign("payload", CrystalJose::JWS::Algorithm::ES256, key)
-plaintext = CrystalJose::JWS.verify(jws, key.public_key)
+# === JWS, elliptic curve ============================================
+jws = Jose::JWS.sign("payload", Jose::JWS::Algorithm::ES256, key)
+payload = Jose::JWS.verify(jws, key.public_key)
 
 # === JWE ============================================================
-jwe = CrystalJose::JWE.encrypt("secret", peer.public_key)
-plaintext = CrystalJose::JWE.decrypt(jwe, peer)
+jwe = Jose::JWE.encrypt("secret", peer.public_key)
+plaintext = Jose::JWE.decrypt(jwe, peer)
+
+# === RSA ============================================================
+rsa = Jose::JWK::RSAKey.generate(2048)
+rsa.modulus_bits           # => 2048
+token = Jose::JWS.sign("payload", Jose::JWS::Algorithm::RS256, rsa)
+payload = Jose::JWS.verify(token, rsa.public_key)
+
+# Verifying a token from an identity provider: take the JWK it publishes
+# and check the token against it.
+idp_key = Jose::JWK::RSAKey.from_json(published_jwk)
+claims = Jose::JWS.verify(id_token, idp_key)
 ----
+
+An algorithm and a key type must agree: signing with `RS256` and an
+`ECKey`, or `ES256` and an `RSAKey`, raises rather than silently doing
+something surprising. `Algorithm#family` reports which key a given
+algorithm wants.
+
+NOTE: A private `RSAKey` needs its CRT members (`p`, `q`, `dp`, `dq`,
+`qi`) to be usable for signing. RFC 7518 makes them optional in a JWK,
+but OpenSSL cannot build a key from `n`, `e` and `d` alone. `#crt_complete?`
+reports whether they are present; verification with a public key is
+unaffected.
 
 == Development
 

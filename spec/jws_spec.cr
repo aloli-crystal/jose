@@ -149,3 +149,109 @@ describe Jose::JWS do
     end
   end
 end
+
+describe Jose::JWS do
+  describe "RSA signatures" do
+    it "signs and verifies with RS256" do
+      key = Jose::JWK::RSAKey.generate(2048)
+      payload = "hello world"
+      jws = Jose::JWS.sign(payload, Jose::JWS::Algorithm::RS256, key)
+      jws.split('.').size.should eq(3)
+
+      String.new(Jose::JWS.verify(jws, key.public_key)).should eq(payload)
+    end
+
+    it "signs and verifies with RS384" do
+      key = Jose::JWK::RSAKey.generate(2048)
+      jws = Jose::JWS.sign("hello world", Jose::JWS::Algorithm::RS384, key)
+      String.new(Jose::JWS.verify(jws, key.public_key)).should eq("hello world")
+    end
+
+    it "signs and verifies with RS512" do
+      key = Jose::JWK::RSAKey.generate(2048)
+      jws = Jose::JWS.sign("hello world", Jose::JWS::Algorithm::RS512, key)
+      String.new(Jose::JWS.verify(jws, key.public_key)).should eq("hello world")
+    end
+
+    it "round-trips binary payload bytes" do
+      key = Jose::JWK::RSAKey.generate(2048)
+      payload = Bytes[0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0xFF, 0x42]
+      jws = Jose::JWS.sign(payload, Jose::JWS::Algorithm::RS256, key)
+      Jose::JWS.verify(jws, key.public_key).should eq(payload)
+    end
+
+    it "carries header extras such as kid" do
+      key = Jose::JWK::RSAKey.generate(2048)
+      jws = Jose::JWS.sign("x", Jose::JWS::Algorithm::RS256, key, {"kid" => "idp-2026"})
+      Jose::JWS.decode(jws)[:header]["kid"].as_s.should eq("idp-2026")
+    end
+
+    it "verifies a pinned token against a pinned public JWK" do
+      key = Jose::JWK::RSAKey.from_json(RSAFixtures::PUBLIC_JWK)
+      payload = String.new(Jose::JWS.verify(RSAFixtures::TOKEN, key))
+      payload.should contain(%("iss":"https://idp.example"))
+      payload.should contain(%("aud":"noalyss"))
+    end
+
+    it "rejects a tampered payload" do
+      key = Jose::JWK::RSAKey.from_json(RSAFixtures::PUBLIC_JWK)
+      header, _payload, signature = RSAFixtures::TOKEN.split('.')
+      forged = "#{header}.#{Jose::Utils.base64url_encode(%({"iss":"attacker"}))}.#{signature}"
+
+      expect_raises(Jose::JWS::VerificationError, /verification failed/) do
+        Jose::JWS.verify(forged, key)
+      end
+    end
+
+    it "rejects a signature made by a different key" do
+      signer = Jose::JWK::RSAKey.generate(2048)
+      other = Jose::JWK::RSAKey.generate(2048)
+      jws = Jose::JWS.sign("x", Jose::JWS::Algorithm::RS256, signer)
+
+      expect_raises(Jose::JWS::VerificationError, /verification failed/) do
+        Jose::JWS.verify(jws, other.public_key)
+      end
+    end
+
+    it "refuses to sign with a public key" do
+      key = Jose::JWK::RSAKey.generate(2048).public_key
+      expect_raises(Jose::JWS::Error, /private key/) do
+        Jose::JWS.sign("x", Jose::JWS::Algorithm::RS256, key)
+      end
+    end
+  end
+
+  describe "algorithm families" do
+    it "reports the family of each algorithm" do
+      Jose::JWS::Algorithm::ES256.family.should eq(Jose::JWS::Family::EC)
+      Jose::JWS::Algorithm::RS256.family.should eq(Jose::JWS::Family::RSA)
+    end
+
+    it "refuses an RSA algorithm with an EC key" do
+      key = Jose::JWK::ECKey.generate(Jose::JWK::Curve::P256)
+      expect_raises(Jose::JWS::Error, /needs an RSA key/) do
+        Jose::JWS.sign("x", Jose::JWS::Algorithm::RS256, key)
+      end
+    end
+
+    it "refuses an EC algorithm with an RSA key" do
+      key = Jose::JWK::RSAKey.generate(2048)
+      expect_raises(Jose::JWS::Error, /needs an EC key/) do
+        Jose::JWS.sign("x", Jose::JWS::Algorithm::ES256, key)
+      end
+    end
+
+    it "refuses to verify an RS256 token with an EC key" do
+      ec = Jose::JWK::ECKey.generate(Jose::JWK::Curve::P256)
+      expect_raises(Jose::JWS::VerificationError, /needs an RSA key/) do
+        Jose::JWS.verify(RSAFixtures::TOKEN, ec)
+      end
+    end
+
+    it "has no curve for the RSA family" do
+      expect_raises(Jose::JWS::UnsupportedAlgorithmError, /no curve/) do
+        Jose::JWS::Algorithm::RS256.curve
+      end
+    end
+  end
+end

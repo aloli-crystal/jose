@@ -3,6 +3,46 @@
 :toc-title: Versions
 :toclevels: 2
 
+== v0.2.0 — 2026-09-19
+
+=== Added
+
+* **RSA support.** `Jose::JWK::RSAKey` and the `RS256`, `RS384` and `RS512`
+  signature algorithms. The driver is OpenID Connect and WebAuthn: both sign
+  with RS256 by default, so an EC-only library cannot verify a token from a
+  typical identity provider nor an assertion from a Windows Hello
+  authenticator.
+* `RSAKey`: key generation, JWK parsing and serialization, RFC 7638
+  thumbprints, `modulus_bits`, and DER output as PKCS#1, PKCS#8 and
+  SubjectPublicKeyInfo.
+* `Jose::JWS::Family` and `Algorithm#family`, so an algorithm and a key type
+  can be checked against each other. Signing with `RS256` and an `ECKey`, or
+  `ES256` and an `RSAKey`, now raises instead of failing obscurely.
+* `Jose::DER`, a small shared DER encoder/decoder. `JWS` used to carry its own
+  private copy for ECDSA signature reshaping; both it and `RSAKey` now use
+  this one.
+* Interop specs against the `openssl` binary. RSASSA-PKCS1-v1_5 is
+  deterministic, so our signatures are compared **byte for byte** with
+  OpenSSL's own — a complete check of padding, digest and key handling, not
+  merely a round-trip against ourselves. Skipped when `openssl` is absent.
+
+=== Fixed
+
+* README usage examples still referred to `CrystalJose::*`, renamed to
+  `Jose::*` back in v0.1.2.
+
+=== Notes
+
+* RSA keys are built through the EVP-level `d2i_PUBKEY` and
+  `d2i_AutoPrivateKey` entry points rather than the low-level `RSA_new` /
+  `RSA_set0_key` family, which OpenSSL 3 deprecated.
+* A private `RSAKey` needs its CRT members (`p`, `q`, `dp`, `dq`, `qi`) in
+  order to sign. RFC 7518 makes them optional in a JWK, but OpenSSL cannot
+  build a key from `n`, `e` and `d` alone; `#crt_complete?` reports whether
+  they are present. Verification with a public key is unaffected.
+* Key generation refuses anything below 2048 bits.
+* RSA-OAEP, RSA-PSS (`PS256`, …) and EdDSA remain out of scope.
+
 == v0.1.2 — 2026-04-29
 
 === Changed

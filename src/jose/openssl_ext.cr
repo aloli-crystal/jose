@@ -1,6 +1,6 @@
 require "openssl/lib_crypto"
 
-# Extended LibCrypto bindings for EC, ECDSA, ECDH and AES-GCM
+# Extended LibCrypto bindings for EC, ECDSA, ECDH, RSA and AES-GCM
 # operations needed by JOSE (RFC 7515-7519).
 #
 # Crystal stdlib's `OpenSSL` module exposes very little of EC, so we
@@ -59,6 +59,20 @@ lib LibCrypto
   fun evp_digestsign = EVP_DigestSign(ctx : EVP_MD_CTX, sigret : UInt8*, siglen : LibC::SizeT*, tbs : UInt8*, tbslen : LibC::SizeT) : Int
   fun evp_digestverifyinit = EVP_DigestVerifyInit(ctx : EVP_MD_CTX, pctx : Void*, type : EVP_MD, e : Void*, pkey : EvpPKey) : Int
   fun evp_digestverify = EVP_DigestVerify(ctx : EVP_MD_CTX, sigret : UInt8*, siglen : LibC::SizeT, tbs : UInt8*, tbslen : LibC::SizeT) : Int
+
+  # RSA keys are built through the EVP-level DER entry points rather than
+  # the low-level `RSA_new` / `RSA_set0_key` family, which OpenSSL 3
+  # deprecated. `JWK::RSAKey` serialises its JWK members into
+  # SubjectPublicKeyInfo or PKCS#8 and hands the result to these.
+  #
+  # Both `d2i_*` functions advance the pointer they are given, so callers
+  # must pass a pointer to a throwaway copy.
+  fun d2i_pubkey = d2i_PUBKEY(a : EvpPKey*, pp : UInt8**, length : Long) : EvpPKey
+  fun d2i_autoprivatekey = d2i_AutoPrivateKey(a : EvpPKey*, pp : UInt8**, length : Long) : EvpPKey
+  fun i2d_privatekey = i2d_PrivateKey(a : EvpPKey, pp : UInt8**) : Int
+  # `EVP_RSA_gen` is a macro in OpenSSL 3, not a symbol; the real entry
+  # point is this variadic one, called as (nil, nil, "RSA", size_t bits).
+  fun evp_pkey_q_keygen = EVP_PKEY_Q_keygen(libctx : Void*, propq : UInt8*, type : UInt8*, ...) : EvpPKey
 
   fun evp_aes_256_gcm = EVP_aes_256_gcm : EVP_CIPHER
 

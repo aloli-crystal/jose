@@ -1,11 +1,12 @@
 name: jose
-version: 0.1.3
+version: 0.2.0
 description: |
   JOSE (RFC 7515-7519) implementation in pure Crystal: JSON Web
   Signature, JSON Web Encryption, JSON Web Key.
-  Initial scope optimized for use by crystal-clevis-geli (Tang
-  client): ECDH-ES (P-256/P-384/P-521), JWE A256GCM, JWS
-  ES256/ES512, JWK thumbprints.
+  Elliptic curve: ECDH-ES (P-256/P-384/P-521), JWE A256GCM, JWS
+  ES256/ES384/ES512, JWK thumbprints.
+  RSA: JWS RS256/RS384/RS512, RSA JWK with PKCS#1, PKCS#8 and
+  SubjectPublicKeyInfo DER — for OpenID Connect and WebAuthn.
 authors:
   - Philippe Nénert <philippe@aloli.fr>
 license: MIT

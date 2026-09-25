@@ -3,6 +3,50 @@
 :toc-title: Versions
 :toclevels: 2
 
+== v0.2.0 — 2026-09-19
+
+=== Ajouté
+
+* **Prise en charge de RSA.** `Jose::JWK::RSAKey` et les algorithmes de
+  signature `RS256`, `RS384` et `RS512`. Le besoin vient d'OpenID Connect et
+  de WebAuthn : tous deux signent en RS256 par défaut, une bibliothèque
+  limitée aux courbes elliptiques ne peut donc vérifier ni un jeton d'un
+  fournisseur d'identité courant, ni une assertion d'un authentificateur
+  Windows Hello.
+* `RSAKey` : génération de clés, lecture et sérialisation JWK, empreintes
+  RFC 7638, `modulus_bits`, et sortie DER en PKCS#1, PKCS#8 et
+  SubjectPublicKeyInfo.
+* `Jose::JWS::Family` et `Algorithm#family`, pour confronter un algorithme et
+  un type de clé. Signer en `RS256` avec une `ECKey`, ou en `ES256` avec une
+  `RSAKey`, lève désormais une erreur explicite au lieu d'échouer
+  obscurément.
+* `Jose::DER`, un petit encodeur/décodeur DER partagé. `JWS` en embarquait
+  une copie privée pour remettre en forme les signatures ECDSA ; lui et
+  `RSAKey` utilisent maintenant celui-ci.
+* Specs d'interopérabilité contre le binaire `openssl`. RSASSA-PKCS1-v1_5
+  étant déterministe, nos signatures sont comparées **octet pour octet** à
+  celles d'OpenSSL — ce qui contrôle d'un coup le remplissage, le condensat
+  et le traitement de la clé, au lieu d'un simple aller-retour sur
+  nous-mêmes. Ignorées si `openssl` est absent.
+
+=== Corrigé
+
+* Les exemples d'utilisation des README mentionnaient encore
+  `CrystalJose::*`, renommé en `Jose::*` dès la v0.1.2.
+
+=== Notes
+
+* Les clés RSA sont construites via les points d'entrée EVP `d2i_PUBKEY` et
+  `d2i_AutoPrivateKey`, et non via la famille bas niveau `RSA_new` /
+  `RSA_set0_key` qu'OpenSSL 3 a dépréciée.
+* Une `RSAKey` privée a besoin de ses membres CRT (`p`, `q`, `dp`, `dq`,
+  `qi`) pour signer. La RFC 7518 les rend facultatifs dans un JWK, mais
+  OpenSSL ne sait pas construire une clé à partir de `n`, `e` et `d` seuls ;
+  `#crt_complete?` indique s'ils sont présents. La vérification avec une clé
+  publique n'est pas concernée.
+* La génération refuse toute taille inférieure à 2048 bits.
+* RSA-OAEP, RSA-PSS (`PS256`, …) et EdDSA restent hors périmètre.
+
 == v0.1.2 — 2026-04-29
 
 === Modifié
