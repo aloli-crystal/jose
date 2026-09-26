@@ -107,7 +107,7 @@ vérification avec une clé publique n'est pas concernée.
 shards install
 crystal spec
 crystal tool format --check
-bin/ameba
+crystal run lib/ameba/bin/ameba.cr -- src spec
 ----
 
 == Contribution

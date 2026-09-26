@@ -31,4 +31,8 @@ jobs:
         run: crystal spec
 
       - name: Run linter
-        run: bin/ameba
+        # ameba 1.6 fournissait un `postinstall` qui compilait `bin/ameba` dans
+        # le projet consommateur ; la 1.7 l'a supprimé, comme son TODO
+        # l'annonçait. On l'invoque depuis ses sources, ce qui fonctionne
+        # quelle que soit la version résolue — shard.lock épingle encore 1.6.4.
+        run: crystal run lib/ameba/bin/ameba.cr -- src spec
