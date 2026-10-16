@@ -76,11 +76,19 @@ lib LibCrypto
 
   fun evp_aes_256_gcm = EVP_aes_256_gcm : EVP_CIPHER
 
+  # Also declared by stdlib since Crystal 1.22, with the same signature,
+  # which Crystal accepts as a redeclaration.
   fun evp_cipher_ctx_ctrl = EVP_CIPHER_CTX_ctrl(ctx : EVP_CIPHER_CTX, type : Int, arg : Int, ptr : Void*) : Int
 
-  EVP_CTRL_GCM_SET_IVLEN =  0x9
-  EVP_CTRL_GCM_GET_TAG   = 0x10
-  EVP_CTRL_GCM_SET_TAG   = 0x11
+  EVP_CTRL_GCM_SET_IVLEN = 0x9
+  # Crystal 1.22 declares the two GCM tag controls in stdlib; redefining
+  # them is a compile error, so only fill them in for older compilers.
+  {% unless LibCrypto.has_constant?(:EVP_CTRL_GCM_GET_TAG) %}
+    EVP_CTRL_GCM_GET_TAG = 0x10
+  {% end %}
+  {% unless LibCrypto.has_constant?(:EVP_CTRL_GCM_SET_TAG) %}
+    EVP_CTRL_GCM_SET_TAG = 0x11
+  {% end %}
 
   NID_X9_62_PRIME256V1 = 415
   NID_SECP384R1        = 715
